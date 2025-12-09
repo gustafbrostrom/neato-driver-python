@@ -162,20 +162,55 @@ def __parse_response(
 
         parts = line.split(",")
 
-        if parts[0].isnumeric():
-            # Handle Laser Data
-            results[int(parts[0])] = [int(parts[1]),
-                                      int(parts[2]), int(parts[3])]
+        if parts[0] and parts[0].strip().isnumeric():
+            # Handle Laser Data - format: angle, distance, intensity, error_code
+            try:
+                if len(parts) >= 4 and parts[1] and parts[2] and parts[3]:
+                    results[int(parts[0])] = [int(parts[1]),
+                                              int(parts[2]), int(parts[3])]
+                elif len(parts) >= 3 and parts[1] and parts[2]:
+                    # Some lines might have fewer parts, use defaults for missing values
+                    results[int(parts[0])] = [int(parts[1]),
+                                              int(parts[2]), 0]
+                elif len(parts) >= 2 and parts[1]:
+                    # Only angle and distance
+                    results[int(parts[0])] = [int(parts[1]), 0, 0]
+                # If not enough valid parts, skip it
+            except (ValueError, IndexError):
+                # Skip invalid laser data lines
+                pass
             continue
 
-        if allInt or (intKeys and parts[0] in intKeys):
-            results[parts[0]] = int(parts[1])
-        elif allFloat or (floatKeys and parts[0] in floatKeys):
-            results[parts[0]] = float(parts[1])
-        elif allBool or (boolKeys and parts[0] in boolKeys):
-            results[parts[0]] = parts[1] == "1"
+        # Find the value - it might be in parts[1] or parts[2] if there's a unit
+        if len(parts) < 2:
+            continue  # Skip if no value available
+        
+        # Determine which part contains the value
+        value_str = None
+        if len(parts) > 2 and parts[2] and parts[2].strip():
+            # Check if parts[1] looks like a unit (not numeric) and parts[2] is numeric
+            try:
+                float(parts[1].strip())
+                # parts[1] is numeric, use it
+                value_str = parts[1].strip()
+            except (ValueError, IndexError):
+                # parts[1] is not numeric (likely a unit), use parts[2]
+                value_str = parts[2].strip()
         else:
-            results[parts[0]] = parts[1]
+            # Only parts[1] available, use it
+            value_str = parts[1].strip() if parts[1] else ""
+        
+        if not value_str:
+            continue  # Skip this line if no valid value found
+        
+        if allInt or (intKeys and parts[0] in intKeys):
+            results[parts[0]] = int(value_str)
+        elif allFloat or (floatKeys and parts[0] in floatKeys):
+            results[parts[0]] = float(value_str)
+        elif allBool or (boolKeys and parts[0] in boolKeys):
+            results[parts[0]] = value_str == "1"
+        else:
+            results[parts[0]] = value_str
     return results
 
 

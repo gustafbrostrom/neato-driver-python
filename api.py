@@ -13,7 +13,7 @@
 
 import neato_driver as robot
 
-robot.init('/dev/tty.usbmodem14601')
+robot.init('/dev/ttyACM0')
 commands = []
 toc = "\n## Table of Contents\n"
 
@@ -85,8 +85,15 @@ for command in commands:
 
     # command example
     if command.startswith('Get') or command.startswith('Help'):
-        fn = getattr(robot, command)
-        result = fn()
+        try:
+            fn = getattr(robot, command)
+            result = fn()
+        except Exception as e:
+            main += "\n\n**Error:** " + str(e)
+            print(command)
+            result = robot.__write(command)
+            print(result)
+
         if type(result) is dict:
             for key in result:
                 if str(key).find("Serial") > -1:
