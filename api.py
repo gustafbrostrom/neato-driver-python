@@ -1,6 +1,6 @@
 # Script used to read all help text from Neato.
 # Simply connect Neato, update your port
-# name ('/dev/neato') and run this script.
+# name ('/dev/ttyACM0') and run this script.
 # All help markdown is written to a file in the
 # same directory called neato_help.md
 

@@ -1144,7 +1144,7 @@ def init(port, printDebug=False, timeout=0.5):
     """initilize connection with Neato.
 
     Args:
-        port (string): port description such "/dev/neato" or "COM3"
+        port (string): port description such "/dev/ttyACM0" or "COM3"
         printDebug (bool, optional): Whether or not to print debug logging. Defaults to False.
     """
     global __serialPort, __debug, __timeout
